@@ -1,0 +1,34 @@
+networks:
+  docknet:
+    driver: bridge
+    ipam:
+      config:
+        - gateway: 172.119.0.1 #Шлюз
+          subnet: 172.119.0.0/16 #Маска сети (16 адресов)
+      driver: default
+services:
+  orbita:
+    networks:
+      docknet:
+        ipv4_address: 172.119.0.2
+    image: orbita
+    ports:
+      - 8080:8080 # порт 8080 внутри докера - будет проброшен на внешку
+    depends_on:
+      - postgres
+
+  postgres:
+    networks:
+      docknet:
+        aliases:
+          - postgres
+        ipv4_address: 172.119.0.3
+    image: postgres
+    ports:
+      - 5434:5432
+    environment:
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_USER=admin
+      - POSTGRES_DB=test
+version: '2.0'
+volumes: {}
