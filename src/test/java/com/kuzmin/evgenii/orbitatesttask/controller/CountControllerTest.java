@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
+import org.testcontainers.containers.PostgreSQLContainer;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -17,6 +18,18 @@ class CountControllerTest {
 
     @Autowired
     MockMvc mockMvc;
+
+    static PostgreSQLContainer postgreSQLContainer = (PostgreSQLContainer) new PostgreSQLContainer("postgres")
+            .withUsername("admin")
+            .withPassword("admin")
+            .withDatabaseName("test")
+            .withExposedPorts(5432);
+
+    static {
+        postgreSQLContainer.start();
+        System.setProperty("DB_URL", "localhost");
+        System.setProperty("DB_PORT", postgreSQLContainer.getMappedPort(5432).toString());
+    }
 
     @BeforeEach
     public void setUp() throws Exception {
@@ -61,7 +74,7 @@ class CountControllerTest {
     @Test
     public void raceConditionTest() throws Exception {
         //When
-        for (int i = 0; i < 10000; i++) {
+        for (int i = 0; i < 100; i++) {
 
             new Thread(() -> {
                 try {
